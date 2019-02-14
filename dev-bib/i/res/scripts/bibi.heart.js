@@ -1396,7 +1396,7 @@ L.onLoadSpread = function(Spread) {
     console.log('CALL L.onLoadItemsInSpreads')
     console.log(L.LoadedSpreads)
     //if(L.LoadedSpreads == R.Spreads.length) L.onLoadItemsInSpreads();
-    if(L.LoadedSpreads == 4) L.onLoadItemsInSpreads();
+    if(L.LoadedSpreads == 3) L.onLoadItemsInSpreads();
 };
 
 
@@ -1989,6 +1989,7 @@ R.layOut = function(Opt) {
         }
     */
 
+    console.log('layOut Start')
     if(!Opt) Opt = {};
 
     if(R.LayingOut) return false;
@@ -2006,6 +2007,7 @@ R.layOut = function(Opt) {
     sML.addClass(O.HTML, "laying-out");
     if(!Opt.NoNotification) I.note('Laying Out...');
 
+    console.log('layOut Start Opt.Destination')
     if(!Opt.Destination) {
         R.getCurrent();
         var CurrentPage = R.Current.Pages.StartPage;
@@ -2027,6 +2029,7 @@ R.layOut = function(Opt) {
 
     //setTimeout(function() {
 
+    console.log('layOut Start Opt.Reset')
     if(Opt.Reset || R.ToBeLaidOutLater) {
         R.ToBeLaidOutLater = false;
         R.resetStage();
@@ -2037,6 +2040,9 @@ R.layOut = function(Opt) {
     R.Spreads.forEach(function(Spread) { R.layOutSpread(Spread); });
 
     R.Columned = false;
+    console.log('layOut Start R.Items')
+    console.log(R.Items)
+    R.Items = R.Items.slice(0,2)
     for(var l = R.Items.length, i = 0; i < l; i++) {
         var Style = R.Items[i].HTML.style;
         if(Style["-webkit-column-width"] || Style["-moz-column-width"] || Style["-ms-column-width"] || Style["column-width"]) {
@@ -2052,6 +2058,7 @@ R.layOut = function(Opt) {
     sML.removeClass(O.HTML, "laying-out");
     if(!Opt.NoNotification) I.note('');
 
+    console.log('layOut Start addEventListener')
     window.addEventListener(O["resize"], R.onresize);
     R.Main.addEventListener("scroll", R.onscroll);
 
