@@ -340,6 +340,7 @@ L.loadBook = function(PathOrData) {
         B.PathDelimiter = B.Unzipped ? "/" : " > ";
         O.log("Book Initialized.", "/*");
         L.loadContainer();
+        console.log('L.loadBook FINISHED')
     }).catch(function(ErrorMessage) {
         I.note(ErrorMessage, 99999999999, "ErrorOccured");
         O.error(ErrorMessage);
@@ -351,6 +352,7 @@ L.loadBook = function(PathOrData) {
 L.loadContainer = function() {
     O.log('Loading Container XML: ' + B.Path + B.PathDelimiter + B.Container.Path + ' ...', "*:");
     O.openDocument(B.Container.Path).then(L.processContainer).then(L.onLoadContainer);
+    console.log('L.loadContainer FINISHED')
 };
 
 
@@ -545,6 +547,7 @@ L.onLoadPackageDocument = function() {
             });
         }
     });
+    console.log('L.onLoadPackageDocument FINISHED')
 };
 
 
@@ -768,15 +771,24 @@ L.loadItemsInSpreads = function() {
     window.addEventListener("resize", L.listenResizingWhileLoading);
 
     L.preprocessResources().then(function() {
+        console.log(R.Spreads)
+        console.log(R.Spreads.slice(0,2))
+        //R.Spreads.forEach(L.loadSpread);
+        R.Spreads = R.Spreads.slice(0,3)
         R.Spreads.forEach(L.loadSpread);
+        console.log('R.Spreads.forEach FINISHED')
     });
+
+    console.log('L.loadItemsInSpreads FINISHED')
 
 };
 
 
 L.preprocessResources = function() {
     
+    console.log('L.preprocessResources CALLED')
     return new Promise(function(resolve, reject) {
+        console.log('L.preprocessResources PROMISE CALLED')
         if(B.Unzipped) {
             var FileExtensionRE = (function() {
                 if(sML.UA.Gecko || sML.UA.Edge) return /\.(xhtml|xml|html?|css)$/;
@@ -804,10 +816,12 @@ L.preprocessResources = function() {
             }
         } else {
             for(var FilePath in B.Files) if(typeof B.Package.Manifest.Files[FilePath] == "undefined") B.Files[FilePath] = "";
+            console.log('Unzipped FINISHED')
             resolve("ToPreprocess");
         }
     }).then(function(ToPreprocess) {
         if(!ToPreprocess) return;
+        console.log('START PREPROCESS')
         for(var Type in L.preprocessResources.Settings) if(L.preprocessResources.Settings[Type].init) L.preprocessResources.Settings[Type].init();
         E.dispatch("bibi:is-going-to:preprocess-resources");
         var Log = [];
@@ -815,6 +829,7 @@ L.preprocessResources = function() {
             var Count = 0;
             for(var FilePath in B.Files) {
                 if(!L.preprocessResources.Settings[Type].FileExtensionRE.test(FilePath)) continue;
+
                 L.preprocessResources.preprocessFile(FilePath, L.preprocessResources.Settings[Type]);
                 Count++;
             }
@@ -953,18 +968,26 @@ L.preprocessResources.replaceResourceRefferences = function(FilePath, FileConten
 L.loadSpread = function(Spread) {
     Spread.Loaded = false;
     Spread.LoadedItems = 0;
-    Spread.Items.forEach(L.loadItem);
+    console.log(Spread.Items)
+    const aaa = [1,2,3]
+    Spread.Items.forEach(L.loadItem)
+    //for (var Item of Spread.Items) {
+    //  L.loadItem(Item);
+    //}
+    console.log('L.loadSpread FINISHED')
 };
 
 
 L.loadItem = function(Item) {
     O.log(sML.String.pad(Item.ItemIndex + 1, 0, B.FileDigit) + '/' + sML.String.pad(R.Items.length, 0, B.FileDigit) + ' - ' + (Item.Path ? B.Path + B.PathDelimiter + Item.Path : '... Not Found.'), "-*");
     Item.Loaded = false;
+    console.log('L.loadItem')
     Item.TimeCard = {};
     Item.stamp = function(What) { O.stamp(What, Item.TimeCard); };
     var Path = Item.Path;
     if(/\.(xhtml|xml|html?)$/i.test(Path)) {
         // If HTML or Others
+        console.log('XHTML')
         if(B.Files[Path]) {
             L.loadItem.writeItemHTML(Item, B.Files[Path]);
             setTimeout(L.postprocessItem, 0, Item);
@@ -973,8 +996,10 @@ L.loadItem = function(Item) {
             Item.onload = function() { setTimeout(L.postprocessItem, 0, Item); };
             Item.ItemBox.appendChild(Item);
         }
+        console.log('XHTML FINISHED')
     } else if(/\.(svg)$/i.test(Path)) {
         // If SVG-in-Spine
+        console.log('SVG')
         Item.IsSVG = true;
         if(B.Files[Path]) {
             L.loadItem.writeItemHTML(Item, false, '', B.Files[Path].replace(/<\?xml-stylesheet (.+?)[ \t]?\?>/g, '<link rel="stylesheet" $1 />'));
@@ -986,10 +1011,12 @@ L.loadItem = function(Item) {
         }
     } else if(/\.(gif|jpe?g|png)$/i.test(Path)) {
         // If Bitmap-in-Spine
+        console.log('JPEG')
         Item.IsBitmap = true;
         L.loadItem.writeItemHTML(Item, false, '', '<img alt="" src="' + (B.Files[Path] ? O.getDataURI(Path, B.Files[Path]) : B.Path + "/" + Path) + '" />');
     } else if(/\.(pdf)$/i.test(Path)) {
         // If PDF-in-Spine
+        console.log('PDF')
         Item.IsPDF = true;
         L.loadItem.writeItemHTML(Item, false, '',     '<iframe src="' + (B.Files[Path] ? O.getDataURI(Path, B.Files[Path]) : B.Path + "/" + Path) + '" />');
     }
@@ -999,6 +1026,7 @@ L.loadItem = function(Item) {
 L.loadItem.writeItemHTML = function(Item, HTML, Head, Body) {
     Item.ItemBox.appendChild(Item);
     Item.contentDocument.open();
+    console.log('L.loadItem.writeItemHTML')
     Item.contentDocument.write(HTML ? HTML.replace(/^<\?.+?\?>/, "") : [
         '<!DOCTYPE html>',
         '<html>',
@@ -1014,6 +1042,7 @@ L.postprocessItem = function(Item) {
 
     Item.stamp("Postprocess");
 
+    console.log('L.postprocessItem')
     Item.PostprocessTrialCount = Item.PostprocessTrialCount || 1;
 
     if(
@@ -1024,6 +1053,7 @@ L.postprocessItem = function(Item) {
         if(Item.PostprocessTrialCount > 10) {
             return O.error("Faled to load an Item: " + Item.Path);
         } else {
+            console.log('L.postprocessItem OK?')
             return setTimeout(function() {
                 Item.PostprocessTrialCount++;
                 L.postprocessItem(Item);
@@ -1336,6 +1366,7 @@ L.postprocessItem.patchStyles.getBackgroundStyle = function(Ele) {
 
 L.onLoadItem = function(Item) {
     Item.Loaded = true;
+    console.log('L.onLoadItem')
     L.LoadedItems++;
     if(Item.ImageItem) {
         sML.addClass(Item.ItemBox, "image-item-box");
@@ -1362,7 +1393,10 @@ L.onLoadSpread = function(Spread) {
     }
     E.dispatch("bibi:loaded-spread", Spread);
     if(!R.ToBeLaidOutLater) R.resetSpread(Spread);
-    if(L.LoadedSpreads == R.Spreads.length) L.onLoadItemsInSpreads();
+    console.log('CALL L.onLoadItemsInSpreads')
+    console.log(L.LoadedSpreads)
+    //if(L.LoadedSpreads == R.Spreads.length) L.onLoadItemsInSpreads();
+    if(L.LoadedSpreads == 4) L.onLoadItemsInSpreads();
 };
 
 
@@ -1371,6 +1405,7 @@ L.onLoadItemsInSpreads = function() {
     B.Files = {};
     R.resetPages();
 
+    console.log('EXECUTE L.onLoadItemsInSpreads')
     O.stamp("Items in Spreads Loaded");
     O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ' Loaded.', "/*");
     E.dispatch("bibi:loaded-items");
