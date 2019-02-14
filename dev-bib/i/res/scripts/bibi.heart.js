@@ -22,8 +22,9 @@ document.addEventListener("DOMContentLoaded", function() { setTimeout(Bibi.welco
 
 Bibi.welcome = function() {
 
-    O.stamp("Welcome!");
-    O.log('Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] ' + Bibi["href"] + ' - [en] https://github.com/satorumurmur/bibi', "-0");
+    //O.stamp("Welcome!");
+    //O.log('Welcome! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] ' + Bibi["href"] + ' - [en] https://github.com/satorumurmur/bibi', "-0");
+    O.log('Welcome!!!! - BiB/i v' + Bibi["version"] + ' (' + Bibi["build"] + ') - [ja] ' + Bibi["href"] + ' - [en] https://github.com/satorumurmur/bibi', "-0");
     E.dispatch("bibi:says-welcome");
 
     O.RequestedURL = location.href;
@@ -754,9 +755,8 @@ L.loadNavigation = function() {
 
 
 L.loadItemsInSpreads = function() {
-
     O.stamp("Load Items in Spreads");
-    O.log('Loading ' + R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + '...', "*:");
+    O.log('Loading!!!! ' + R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + '...', "*:");
 
     R.resetStage();
 
@@ -768,7 +768,12 @@ L.loadItemsInSpreads = function() {
     window.addEventListener("resize", L.listenResizingWhileLoading);
 
     L.preprocessResources().then(function() {
-        R.Spreads.forEach(L.loadSpread);
+        console.log(R.Spreads)
+        console.log(L)
+        //R.Spreads.forEach(L.loadSpread);
+        console.log("LOAD SPREAD EDITED")
+        L.loadSpread(R.Spreads[0]);
+        //return false
     });
 
 };
@@ -953,11 +958,15 @@ L.preprocessResources.replaceResourceRefferences = function(FilePath, FileConten
 L.loadSpread = function(Spread) {
     Spread.Loaded = false;
     Spread.LoadedItems = 0;
+    console.log("Spread.Items")
+    console.log(Spread.Items)
     Spread.Items.forEach(L.loadItem);
+    console.log("LOAD Spread START")
 };
 
 
 L.loadItem = function(Item) {
+    // 中身を表示しているのみ
     O.log(sML.String.pad(Item.ItemIndex + 1, 0, B.FileDigit) + '/' + sML.String.pad(R.Items.length, 0, B.FileDigit) + ' - ' + (Item.Path ? B.Path + B.PathDelimiter + Item.Path : '... Not Found.'), "-*");
     Item.Loaded = false;
     Item.TimeCard = {};
@@ -1006,6 +1015,7 @@ L.loadItem.writeItemHTML = function(Item, HTML, Head, Body) {
             '<body onload="setTimeout(function() { parent.L.postprocessItem(parent.R.Items[' + Item.ItemIndex + ']); document.body.removeAttribute(\'onload\'); return false; }, 0);">' + Body + '</body>',
         '</html>'
     ].join(""));
+    console.log('Iframe のドキュメント読み込み')
     Item.contentDocument.close();
 };
 
@@ -1206,6 +1216,7 @@ L.postprocessItem.coordinateLinkages = function(Item, InNav) {
         var HrefFile = HrefFnH[0] ? HrefFnH[0] : Path;
         var HrefHash = HrefFnH[1] ? HrefFnH[1] : "";
         R.Items.forEach(function(rItem) {
+            if(!rItem) return;
             if(HrefFile == rItem.Path) {
                 A.setAttribute("data-bibi-original-href", HrefPathInSource);
                 A.setAttribute("href", "bibi://" + B.Path.replace(/^\w+:\/\//, "") + B.PathDelimiter + HrefPath);
@@ -1362,15 +1373,18 @@ L.onLoadSpread = function(Spread) {
     }
     E.dispatch("bibi:loaded-spread", Spread);
     if(!R.ToBeLaidOutLater) R.resetSpread(Spread);
-    if(L.LoadedSpreads == R.Spreads.length) L.onLoadItemsInSpreads();
+    console.log('onLoadSpread START')
+    //if(L.LoadedSpreads == R.Spreads.length) L.onLoadItemsInSpreads();
+    L.onLoadItemsInSpreads();
 };
 
 
 L.onLoadItemsInSpreads = function() {
 
+    console.log('onLoadItemsInSpreads START')
     B.Files = {};
     R.resetPages();
-
+    console.log('resetPages START')
     O.stamp("Items in Spreads Loaded");
     O.log(R.Items.length + ' Item' + (R.Items.length > 1 ? 's' : '') + ' in ' + R.Spreads.length + ' Spread' + (R.Spreads.length > 1 ? 's' : '') + ' Loaded.', "/*");
     E.dispatch("bibi:loaded-items");
@@ -1988,7 +2002,9 @@ R.layOut = function(Opt) {
         'apparent-reading-direction: "' + S.ARD + '"'
     ].join(' / '), "-*");
 
+    console.log('Opt.before START')
     if(typeof Opt.before == "function") Opt.before();
+    console.log('Opt.before END')
 
     //setTimeout(function() {
 
@@ -2002,13 +2018,24 @@ R.layOut = function(Opt) {
     R.Spreads.forEach(function(Spread) { R.layOutSpread(Spread); });
 
     R.Columned = false;
+    console.log('Style START')
+    console.log(R.Items)
+    console.log(R.Items[0].HTML)
+    //console.log(R.Items[0].HTML.style)
+    //console.log(R.Items[1].HTML.style)
     for(var l = R.Items.length, i = 0; i < l; i++) {
+        console.log(R.Items[i].HTML)
+    }
+    for(var l = R.Items.length, i = 0; i < l; i++) {
+        //console.log(R.Items[i].HTML.style)
+        if (!R.Items[i].HTML) return;
         var Style = R.Items[i].HTML.style;
         if(Style["-webkit-column-width"] || Style["-moz-column-width"] || Style["-ms-column-width"] || Style["column-width"]) {
             R.Columned = true;
             break;
         }
     }
+    console.log('Style END')
 
     E.dispatch("bibi:commands:focus-on", { Destination: Opt.Destination, Duration: 0 });
 
@@ -3448,7 +3475,10 @@ I.createSlider = function() {
                     I.Slider.Current.addEventListener(O["pointerout"],  I.Nombre.hide);
                 }
                 O.HTML.addEventListener(O["pointerdown"], I.Slider.startSliding);
-                R.Items.concat(O).forEach(function(Item) { Item.HTML.addEventListener(O["pointerup"], I.Slider.endSliding); });
+                R.Items.concat(O).forEach(function(Item) { 
+                  if(!Item.HTML) return;
+                  Item.HTML.addEventListener(O["pointerup"], I.Slider.endSliding); 
+                });
                 E.add("bibi:scrolls", I.Slider.progress);
                 I.Slider.progress();
             },
@@ -3458,7 +3488,7 @@ I.createSlider = function() {
                     I.Slider.Current.removeEventListener(O["pointerout"],  I.Nombre.hide);
                 }
                 O.HTML.removeEventListener(O["pointerdown"], I.Slider.startSliding);
-                R.Items.concat(O).forEach(function(Item) { Item.HTML.removeEventListener(O["pointerup"], I.Slider.endSliding); });
+                R.Items.concat(O).forEach(function(Item) { if(!Item.HTML) return; Item.HTML.removeEventListener(O["pointerup"], I.Slider.endSliding); });
                 E.remove("bibi:scrolls", I.Slider.progress);
             }
         })
@@ -3626,11 +3656,13 @@ I.createArrows = function() {
             E.dispatch("bibi:unhovers", Eve, I.Arrows.Back);
             E.dispatch("bibi:unhovers", Eve, I.Arrows.Forward);
             R.Items.concat(O).forEach(function(Item) {
+                if(!Item.HTML) return;
                 Item.HTML.removeAttribute("data-bibi-cursor");
             });
         });
         E.add("bibi:opened", function() {
             R.Items.concat(O).forEach(function(Item) {
+                if(!Item.HTML) return;
                 sML.each(Item.Body.querySelectorAll("img"), function(){ this.addEventListener(O["pointerdown"], O.preventDefault); });
             });
         });
@@ -3766,6 +3798,7 @@ I.createKeyListener = function() {
         },
         observe: function() {
             [O].concat(R.Items).forEach(function(Item) {
+                if(!Item.HTML) return;
                 ["keydown", "keyup", "keypress"].forEach(function(EventName) {
                     Item.contentDocument.addEventListener(EventName, I.KeyListener["on" + EventName], false);
                 });
@@ -3810,6 +3843,7 @@ I.createSwiper = function() {
             return this.State;
         },
         activateElement: function(Ele) {
+            console.log('ACTIVATEELEMENT START')
             Ele.addEventListener("touchstart", I.Swiper.ontouchstart);
             Ele.addEventListener("touchmove", I.Swiper.ontouchmove);
             Ele.addEventListener("touchend", I.Swiper.ontouchend);
@@ -3895,13 +3929,17 @@ I.createSwiper = function() {
             sML.addClass(O.HTML, "swipe-active");
             if(!O.Mobile) E.add("bibi:wheeled", I.Swiper.onwheeled);
             I.Swiper.activateElement(R.Main);
-            R.Items.forEach(function(Item) { I.Swiper.activateElement(Item.HTML); });
+            console.log('I.Swiper.activateElement START')
+            R.Items.forEach(function(Item) { 
+              if(!Item.HTML) return;
+              I.Swiper.activateElement(Item.HTML); 
+            });
         },
         onclosed: function() {
             sML.removeClass(O.HTML, "swipe-active");
             if(!O.Mobile) E.remove("bibi:wheeled", I.Swiper.onwheeled);
             I.Swiper.deactivateElement(R.Main);
-            R.Items.forEach(function(Item) { I.Swiper.deactivateElement(Item.HTML); });
+            R.Items.forEach(function(Item) { if(!Item.HTML) return; I.Swiper.deactivateElement(Item.HTML); });
         }
     });
 
@@ -4849,9 +4887,11 @@ E = {}; // Bibi.Events
 
 
 E.add = function(Name, Listener, Ele) {
+    console.log("bibi start")
     if(typeof Name != "string" || !/^bibi:/.test(Name) || typeof Listener != "function") return false;
     if(!Listener.bibiEventListener) Listener.bibiEventListener = function(Eve) { return Listener.call(document, Eve.detail); };
     (Ele ? Ele : document).addEventListener(Name, Listener.bibiEventListener, false);
+    console.log("bibi end")
     return Listener;
 };
 
@@ -4903,6 +4943,7 @@ E.dispatch = function(Name, Detail, Ele) {
     Ele = (Ele ? Ele : document);
     if(Ele.BibiBindedEventListeners && Ele.BibiBindedEventListeners[Name] instanceof Array) {
         Ele.BibiBindedEventListeners[Name].forEach(function(bindedEventListener) {
+            if(!bindedEventListener) return;
             if(typeof bindedEventListener == "function") bindedEventListener.call(Ele, Detail);
         });
     }
