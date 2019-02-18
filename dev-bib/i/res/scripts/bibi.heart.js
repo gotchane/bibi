@@ -766,7 +766,7 @@ L.loadItemsInSpreads = function() {
     R.ToBeLaidOutLater = false;
     L.listenResizingWhileLoading = function() { R.ToBeLaidOutLater = true; };
     window.addEventListener("resize", L.listenResizingWhileLoading);
-
+    //R.Spreads = R.Spreads.slice(0, 2)
     L.preprocessResources().then(function() {
         R.Spreads.forEach(L.loadSpread);
     });
@@ -950,9 +950,14 @@ L.preprocessResources.replaceResourceRefferences = function(FilePath, FileConten
 };
 
 
-L.loadSpread = function(Spread) {
+L.loadSpread = function(Spread, index) {
     Spread.Loaded = false;
     Spread.LoadedItems = 0;
+    console.log(Spread.LoadedItems, index)
+    if(index === 2) {
+      L.onLoadSpread(Spread);
+      console.log('FIRED');
+    }
     Spread.Items.forEach(L.loadItem);
 };
 
@@ -1356,12 +1361,13 @@ L.onLoadSpread = function(Spread) {
     Spread.Items.forEach(function(Item) {
         if(!Item.ImageItem) Spread.ImageSpread = false;
     });
+    console.log('L.onLoadSpread FIRED')
     if(Spread.ImageSpread) {
         sML.addClass(Spread.SpreadBox, "image-spread-box");
         sML.addClass(Spread, "image-spread");
     }
     E.dispatch("bibi:loaded-spread", Spread);
-    if(!R.ToBeLaidOutLater) R.resetSpread(Spread);
+    //if(!R.ToBeLaidOutLater) R.resetSpread(Spread);
     if(L.LoadedSpreads == R.Spreads.length) L.onLoadItemsInSpreads();
 };
 
@@ -2002,7 +2008,7 @@ R.layOut = function(Opt) {
     R.Spreads.forEach(function(Spread) { R.layOutSpread(Spread); });
 
     R.Columned = false;
-    for(var l = R.Items.length, i = 0; i < l; i++) {
+    for(var l = L.LoadedItems.length, i = 0; i < l; i++) {
         var Style = R.Items[i].HTML.style;
         if(Style["-webkit-column-width"] || Style["-moz-column-width"] || Style["-ms-column-width"] || Style["column-width"]) {
             R.Columned = true;
